@@ -81,20 +81,19 @@ If these requirements make it impossible for you to use fastText, please open an
 
 ## Building fastText
 
-We discuss building the latest stable version of fastText.
+Do remember to put `--recursive` when you clone this repository, as it requires the [gzstream](https://github.com/kanedo/gzstream) library code to read gzipped file.
 
 ### Getting the source code
 
-You can find our [latest stable release](https://github.com/facebookresearch/fastText/releases/latest) in the usual place.
+You can find the [latest stable release](https://github.com/facebookresearch/fastText/releases/latest) in its usual place.
 
 There is also the master branch that contains all of our most recent work, but comes along with all the usual caveats of an unstable branch. You might want to use this if you are a developer or power-user.
 
 ### Building fastText using make (preferred)
 
 ```
-$ wget https://github.com/facebookresearch/fastText/archive/v0.1.0.zip
-$ unzip v0.1.0.zip
-$ cd fastText-0.1.0
+$ git clone --recursive https://github.com/facebookresearch/fastText.git
+$ cd fastText
 $ make
 ```
 
@@ -106,7 +105,7 @@ If you do not plan on using the default system-wide compiler, update the two mac
 For now this is not part of a release, so you will need to clone the master branch.
 
 ```
-$ git clone https://github.com/facebookresearch/fastText.git
+$ git clone --recursive https://github.com/facebookresearch/fastText.git
 $ cd fastText
 $ mkdir build && cd build && cmake ..
 $ make && make install
@@ -119,7 +118,7 @@ This will create the fasttext binary and also all relevant libraries (shared, st
 For now this is not part of a release, so you will need to clone the master branch.
 
 ```
-$ git clone https://github.com/facebookresearch/fastText.git
+$ git clone --recursive https://github.com/facebookresearch/fastText.git
 $ cd fastText
 $ pip install .
 ```
