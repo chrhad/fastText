@@ -10,6 +10,7 @@
 #pragma once
 
 #include <fstream>
+#include "filewrapper.h"
 
 #if defined(__clang__) || defined(__GNUC__)
 # define FASTTEXT_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
@@ -22,6 +23,9 @@
 namespace fasttext {
 
 namespace utils {
+
+  int64_t size(File*);
+  void seek(File*, int64_t);
 
   int64_t size(std::ifstream&);
   void seek(std::ifstream&, int64_t);

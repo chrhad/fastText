@@ -15,6 +15,16 @@ namespace fasttext {
 
 namespace utils {
 
+  int64_t size(File* f) {
+    f->seekg(std::streamoff(0), std::ios::end);
+    return f->tellg();
+  }
+
+  void seek(File* f, int64_t pos) {
+    f->clear();
+    f->seekg(std::streampos(pos));
+  }
+
   int64_t size(std::ifstream& ifs) {
     ifs.seekg(std::streamoff(0), std::ios::end);
     return ifs.tellg();

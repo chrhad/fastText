@@ -28,6 +28,8 @@
 
 [fastText](https://fasttext.cc/) is a library for efficient learning of word representations and sentence classification.
 
+This modified repository has been added with a functionality of reading a gzipped text file and requires `zlib` to be installed.
+
 ## Resources
 
 ### Models
@@ -55,6 +57,7 @@ Since it uses some C++11 features, it requires a compiler with good C++11 suppor
 These include :
 
 * (g++-4.7.2 or newer) or (clang-3.3 or newer)
+* (zlib-1.2.8)
 
 Compilation is carried out using a Makefile, so you will need to have a working **make**.
 If you want to use **cmake** you need at least version 2.8.9.

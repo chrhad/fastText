@@ -8,6 +8,7 @@
  */
 
 #include "matrix.h"
+#include "filewrapper.h"
 
 #include <random>
 #include <exception>

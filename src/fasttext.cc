@@ -7,7 +7,9 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#include "filewrapper.h"
 #include "fasttext.h"
+#include "gzstream/gzstream.h"
 
 #include <iostream>
 #include <sstream>
@@ -569,8 +571,13 @@ void FastText::analogies(int32_t k) {
 }
 
 void FastText::trainThread(int32_t threadId) {
-  std::ifstream ifs(args_->input);
-  utils::seek(ifs, threadId * utils::size(ifs) / args_->thread);
+  File * f;
+  if (args_->input.compare(args_->input.length() - 3, 3, ".gz") == 0) {
+    f = new FileWrapper<igzstream>(args_->input);
+  } else {
+    f = new FileWrapper<std::ifstream>(args_->input);
+  }
+  utils::seek(f, threadId * utils::size(f) / args_->thread);
 
   Model model(input_, output_, args_, threadId);
   if (args_->model == model_name::sup) {
@@ -586,13 +593,13 @@ void FastText::trainThread(int32_t threadId) {
     real progress = real(tokenCount_) / (args_->epoch * ntokens);
     real lr = args_->lr * (1.0 - progress);
     if (args_->model == model_name::sup) {
-      localTokenCount += dict_->getLine(ifs, line, labels);
+      localTokenCount += dict_->getLine(f->stream(), line, labels);
       supervised(model, lr, line, labels);
     } else if (args_->model == model_name::cbow) {
-      localTokenCount += dict_->getLine(ifs, line, model.rng);
+      localTokenCount += dict_->getLine(f->stream(), line, model.rng);
       cbow(model, lr, line);
     } else if (args_->model == model_name::sg) {
-      localTokenCount += dict_->getLine(ifs, line, model.rng);
+      localTokenCount += dict_->getLine(f->stream(), line, model.rng);
       skipgram(model, lr, line);
     }
     if (localTokenCount > args_->lrUpdateRate) {
@@ -604,18 +611,24 @@ void FastText::trainThread(int32_t threadId) {
   }
   if (threadId == 0)
     loss_ = model.getLoss();
-  ifs.close();
+  f->close();
+  delete f;
 }
 
 void FastText::loadVectors(std::string filename) {
-  std::ifstream in(filename);
+  File * f;
+  if (args_->input.compare(args_->input.length() - 3, 3, ".gz") == 0) {
+    f = new FileWrapper<igzstream>(args_->input);
+  } else {
+    f = new FileWrapper<std::ifstream>(args_->input);
+  }
   std::vector<std::string> words;
   std::shared_ptr<Matrix> mat; // temp. matrix for pretrained vectors
   int64_t n, dim;
-  if (!in.is_open()) {
+  if (!f->is_open()) {
     throw std::invalid_argument(filename + " cannot be opened for loading!");
   }
-  in >> n >> dim;
+  f->stream() >> n >> dim;
   if (dim != args_->dim) {
     throw std::invalid_argument(
         "Dimension of pretrained vectors (" + std::to_string(dim) +
@@ -624,14 +637,14 @@ void FastText::loadVectors(std::string filename) {
   mat = std::make_shared<Matrix>(n, dim);
   for (size_t i = 0; i < n; i++) {
     std::string word;
-    in >> word;
+    f->stream() >> word;
     words.push_back(word);
     dict_->add(word);
     for (size_t j = 0; j < dim; j++) {
-      in >> mat->at(i, j);
+      f->stream() >> mat->at(i, j);
     }
   }
-  in.close();
+  f->close();
 
   dict_->threshold(1, 0);
   dict_->init();
@@ -645,6 +658,7 @@ void FastText::loadVectors(std::string filename) {
       input_->at(idx, j) = mat->at(i, j);
     }
   }
+  delete f;
 }
 
 void FastText::train(const Args args) {
@@ -654,13 +668,19 @@ void FastText::train(const Args args) {
     // manage expectations
     throw std::invalid_argument("Cannot use stdin for training!");
   }
-  std::ifstream ifs(args_->input);
-  if (!ifs.is_open()) {
+  File * f;
+  if (args_->input.compare(args_->input.length() - 3, 3, ".gz") == 0) {
+    f = new FileWrapper<igzstream>(args_->input);
+  } else {
+    f = new FileWrapper<std::ifstream>(args_->input);
+  }
+  if (!f->is_open()) {
     throw std::invalid_argument(
         args_->input + " cannot be opened for training!");
   }
-  dict_->readFromFile(ifs);
-  ifs.close();
+  dict_->readFromFile(f->stream());
+  f->close();
+  delete f;
 
   if (args_->pretrainedVectors.size() != 0) {
     loadVectors(args_->pretrainedVectors);
